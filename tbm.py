@@ -107,10 +107,10 @@ greetings = [
 ]
 
 last_file = 'last.csv'
-if not os.path.isfile(last_file):
-    f = open(last_file, 'a+')
-else:
+if os.path.isfile(last_file):
     f = open(last_file, 'r+')
+else:
+    f = open(last_file, 'w+')
 last_values = get_last_values(f)
 writer = csv.writer(f)
 for i, tbm in enumerate(data):
