@@ -8,6 +8,14 @@ import sys
 import urllib2, BaseHTTPServer
 import pyproj
 import csv
+import os
+
+def get_last_values(f):
+    last_values = {}
+    reader = csv.reader(f)
+    for tbm in reader:
+        last_values[tbm[0]] = float(tbm[1])
+    return last_values
 
 def fetch(url, data=None, headers={}):
     req = urllib2.Request(url=url, data=data, headers=headers)
@@ -97,7 +105,20 @@ greetings = [
     'This is {name} and ',
     '{name} here. '
 ]
+
+last_file = 'last.csv'
+if not os.path.isfile(last_file):
+    f = open(last_file, 'a+')
+else:
+    f = open(last_file, 'r+')
+last_values = get_last_values(f)
+writer = csv.writer(f)
 for i, tbm in enumerate(data):
+    last = last_values.get(tbm['drive_name'])
+    remain = float(tbm['distance_remaining'])
+    if last and last - remain < 1:
+        continue
+
     tube_distances.sort(key=lambda station: station[i+1])
     nearest_station = tube_distances[0]
     station_name = nearest_station[0]
@@ -117,5 +138,6 @@ for i, tbm in enumerate(data):
         dist=tube_distances[0][i+1],
         direction=summarise_direction(tbm['tbm_direction']),
         destination=tbm['tbm_dest'],
-        to_go=round(float(tbm['distance_remaining']), 1)
+        to_go=round(remain, 1)
     )
+    writer.writerow((tbm['drive_name'], tbm['distance_remaining']))
