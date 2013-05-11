@@ -1,11 +1,17 @@
 Looks up where the Crossrail Tunnel Boring Machines are and prints a little status message
 
-TODO: Set up to Tweet these somewhere
+## Data sources
+* http://www.crossrail.co.uk/route/near-you
+* http://wiki.openstreetmap.org/wiki/Nominatim
+* http://www.doogal.co.uk/london_stations.php
 
-Deps:
+## TODO
+* Set up to Tweet these somewhere
+
+## Deps:
 * pyproj https://code.google.com/p/pyproj/
 
-# Install using virtualenv:
+## Install using virtualenv:
 
     # setup and activate virtualenv
     virtualenv tbm
