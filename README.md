@@ -1,3 +1,7 @@
+Looks up where the Crossrail Tunnel Boring Machines are and prints a little status message
+
+TODO: Set up to Tweet these somewhere
+
 Deps:
 * pyproj https://code.google.com/p/pyproj/
 
