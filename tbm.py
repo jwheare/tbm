@@ -33,6 +33,7 @@ def get_lat_lon(easting, northing):
     (lon, lat) = pyproj.transform(bng, wgs84, easting, northing)
     return (lat, lon)
 
+
 def greet_phrase():
     now = datetime.datetime.now()
     if now.hour > 7 and (now.hour < 12 and now.minute < 45):
@@ -42,20 +43,13 @@ def greet_phrase():
     else:
         return random.choice(['Hello', 'Hi', 'Hey'])
 
-
-greetings = [
-    '{phrase}, {{name}} here! ',
-    '{phrase}, it\'s {{name}}. ',
-    'This is {{name}} and ',
-    '{{name}} here. '
-]
-
 def summarise_direction(direction):
     m = re.match(r'\w+ to (\w+)', direction)
     if m:
         return m.group(1).lower()
     return direction
 
+# Load machines data
 # source = open('sample.json')
 source = fetch("http://www.crossrail.co.uk/near-you/geoserver/get-tbms", headers={
     'X-Requested-With': 'XMLHttpRequest'
@@ -65,26 +59,27 @@ if not source:
 
 data = json.load(source)
 
+# Precompute lat long
 for tbm in data:
     lat, lon = get_lat_lon(tbm['easting'], tbm['northing'])
     tbm['lat'] = lat
     tbm['lon'] = lon
 
-tube_distances = []
-
-g = pyproj.Geod(ellps='WGS84')
-
+# Fetch a list of dlr stations
 dlr = []
 with open('dlr.csv', 'rb') as f:
     reader = csv.reader(f)
     for i, station in enumerate(reader):
-        if i > 0:
+        if i > 0: # skip header
             dlr.append(station[0])
 
+# Precompute distances to tube stations (exclude dlr)
+tube_distances = []
+g = pyproj.Geod(ellps='WGS84')
 with open('tube.csv', 'rb') as f:
     reader = csv.reader(f)
     for i, station in enumerate(reader):
-        if i > 0:
+        if i > 0: # skip header
             station_name = station[0]
             if station_name not in dlr:
                 station_lat = station[3]
@@ -95,21 +90,32 @@ with open('tube.csv', 'rb') as f:
                     station_distances.append(dist)
                 tube_distances.append(station_distances)
 
+# Generate messages
+greetings = [
+    '{phrase}, {name} here! ',
+    '{phrase}, it\'s {name}. ',
+    'This is {name} and ',
+    '{name} here. '
+]
 for i, tbm in enumerate(data):
     tube_distances.sort(key=lambda station: station[i+1])
     nearest_station = tube_distances[0]
     station_name = nearest_station[0]
     station_distance = nearest_station[i+1]
+
+    # Vary if we're 'at' a station
     if station_distance < 100:
         at = 'at %s station' % station_name
     else:
         at = 'under %s' % get_name(tbm['lat'], tbm['lon'])
 
-    print (random.choice(greetings).format(phrase=greet_phrase()) + 'I\'m {at}, heading {direction} towards {destination} with {to_go:0.1f}km to go').format(
+    message = 'I\'m {at}, heading {direction} towards {destination} with {to_go:g}km to go'
+    print (random.choice(greetings) + message).format(
+        phrase=greet_phrase(),
         name=tbm['drive_name'],
         at=at,
         dist=tube_distances[0][i+1],
         direction=summarise_direction(tbm['tbm_direction']),
         destination=tbm['tbm_dest'],
-        to_go=float(tbm['distance_remaining'])
+        to_go=round(float(tbm['distance_remaining']), 1)
     )
