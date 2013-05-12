@@ -6,7 +6,8 @@ Looks up where the Crossrail Tunnel Boring Machines are and prints a little stat
 * http://www.doogal.co.uk/london_stations.php
 
 ## Deps:
-* `python` 2.7.3
+(Later versions may very well work fine)
+* `python` [2.7.3](http://www.python.org/download/releases/2.7.3/)
  * `pyproj` [1.9.3](https://pypi.python.org/pypi/pyproj/1.9.3)
  * `twitter` [1.9.4](https://pypi.python.org/pypi/twitter/1.9.4)
 
