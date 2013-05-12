@@ -9,6 +9,18 @@ import urllib2, BaseHTTPServer
 import pyproj
 import csv
 import os
+import twitter
+
+def get_twitter():
+    for k in ['TBM_OAUTH_TOKEN', 'TBM_OAUTH_SECRET', 'TBM_CONSUMER_KEY', 'TBM_CONSUMER_SECRET']:
+        if k not in os.environ:
+            return None
+    return twitter.Twitter(auth=twitter.OAuth(
+        os.environ['TBM_OAUTH_TOKEN'],
+        os.environ['TBM_OAUTH_SECRET'],
+        os.environ['TBM_CONSUMER_KEY'],
+        os.environ['TBM_CONSUMER_SECRET']
+    ))
 
 def get_last_values(f):
     last_values = {}
@@ -106,6 +118,7 @@ greetings = [
     '{name} here. '
 ]
 
+# Set up last values log
 last_file = 'last.csv'
 if os.path.isfile(last_file):
     f = open(last_file, 'r+')
@@ -113,6 +126,9 @@ else:
     f = open(last_file, 'w+')
 last_values = get_last_values(f)
 writer = csv.writer(f)
+
+TWITTER = get_twitter()
+
 for i, tbm in enumerate(data):
     last = last_values.get(tbm['drive_name'])
     remain = float(tbm['distance_remaining'])
@@ -131,7 +147,7 @@ for i, tbm in enumerate(data):
         at = 'under %s' % get_name(tbm['lat'], tbm['lon'])
 
     message = 'I\'m {at}, heading {direction} towards {destination} with {to_go:g}km to go'
-    print (random.choice(greetings) + message).format(
+    line = (random.choice(greetings) + message).format(
         phrase=greet_phrase(),
         name=tbm['drive_name'],
         at=at,
@@ -140,4 +156,12 @@ for i, tbm in enumerate(data):
         destination=tbm['tbm_dest'],
         to_go=round(remain, 1)
     )
-    writer.writerow((tbm['drive_name'], tbm['distance_remaining']))
+    print line
+    if TWITTER:
+        TWITTER.statuses.update(
+            status=line,
+            lat=tbm['lat'],
+            long=tbm['lon'],
+            display_coordinates=True
+        )
+        writer.writerow((tbm['drive_name'], tbm['distance_remaining']))

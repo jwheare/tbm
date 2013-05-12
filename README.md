@@ -1,18 +1,16 @@
-Looks up where the Crossrail Tunnel Boring Machines are and prints a little status message
+Looks up where the Crossrail Tunnel Boring Machines are and prints a little status message, optionally posting to Twitter.
 
 ## Data sources
 * http://www.crossrail.co.uk/route/near-you
 * http://wiki.openstreetmap.org/wiki/Nominatim
 * http://www.doogal.co.uk/london_stations.php
 
-## TODO
-* Set up to Tweet these somewhere
-
 ## Deps:
-* pyproj https://code.google.com/p/pyproj/
+* `python` 2.7.3
+ * `pyproj` [1.9.3](https://pypi.python.org/pypi/pyproj/1.9.3)
+ * `twitter` [1.9.4](https://pypi.python.org/pypi/twitter/1.9.4)
 
 ## Install using virtualenv:
-
     # setup and activate virtualenv
     virtualenv tbm
     cd tbm ; ./bin/activate
@@ -22,7 +20,8 @@ Looks up where the Crossrail Tunnel Boring Machines are and prints a little stat
     # clone this repo inside it
     git clone git@github.com:jwheare/tbm.git
     # install deps
-    pip install pyproj
+    pip install pyproj==1.9.3
+    pip install twitter==1.9.4
     # run
     cd tbm
     ./tbm.py
@@ -31,3 +30,11 @@ Looks up where the Crossrail Tunnel Boring Machines are and prints a little stat
         This is Phyllis and I'm at Bond Street station, heading east towards Farringdon with 3km to go
         Hey, it's Sophia. I'm under Plumstead, heading west towards North Woolwich with 1.6km to go
         This is Victoria and I'm under Blackwall, heading west towards Farringdon with 7.6km to go
+
+## Tweeting
+Specify the following environment variables when running this script to post the updates to Twitter:
+
+* `TBM_OAUTH_TOKEN`
+* `TBM_OAUTH_SECRET`
+* `TBM_CONSUMER_KEY`
+* `TBM_CONSUMER_SECRET`
