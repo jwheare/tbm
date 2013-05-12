@@ -15,11 +15,8 @@ Looks up where the Crossrail Tunnel Boring Machines are and prints a little stat
     # setup and activate virtualenv
     virtualenv tbm
     cd tbm ; ./bin/activate
-    # make a src directory
-    mkdir src
-    cd src
-    # clone this repo inside it
-    git clone git@github.com:jwheare/tbm.git
+    # clone this repo inside a src directory
+    git clone https://github.com/jwheare/tbm.git src
     # install deps
     pip install pyproj==1.9.3
     pip install twitter==1.9.4
