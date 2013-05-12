@@ -21,7 +21,7 @@ Looks up where the Crossrail Tunnel Boring Machines are and prints a little stat
     pip install pyproj==1.9.3
     pip install twitter==1.9.4
     # run
-    cd tbm
+    cd src
     ./tbm.py
         Ada here. I'm under Mayfair, heading east towards Farringdon with 3.3km to go
         Hi, it's Elizabeth. I'm under Blackwall, heading west towards Farringdon with 7.2km to go
