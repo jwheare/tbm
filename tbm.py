@@ -26,7 +26,10 @@ def get_last_values(f):
     last_values = {}
     reader = csv.reader(f)
     for tbm in reader:
-        last_values[tbm[0]] = float(tbm[1])
+        val = tbm[1]
+        if val != 'arrived':
+            val = float(val)
+        last_values[tbm[0]] = val
     return last_values
 
 def fetch(url, data=None, headers={}):
@@ -129,10 +132,15 @@ writer = csv.writer(f)
 
 TWITTER = get_twitter()
 
+
 for i, tbm in enumerate(data):
     last = last_values.get(tbm['drive_name'])
     remain = float(tbm['distance_remaining'])
-    if last and last - remain < 1:
+    arrived = remain < 0.001
+    if arrived:
+        if last and last == 'arrived':
+            continue
+    elif last and last - remain < 1:
         continue
 
     tube_distances.sort(key=lambda station: station[i+1])
@@ -145,17 +153,21 @@ for i, tbm in enumerate(data):
         at = 'at %s station' % station_name
     else:
         at = 'under %s' % get_name(tbm['lat'], tbm['lon'])
-
-    message = 'I\'m {at}, heading {direction} towards {destination} with {to_go:g}km to go'
-    line = (random.choice(greetings) + message).format(
-        phrase=greet_phrase(),
-        name=tbm['drive_name'],
-        at=at,
-        dist=tube_distances[0][i+1],
-        direction=summarise_direction(tbm['tbm_direction']),
-        destination=tbm['tbm_dest'],
-        to_go=round(remain, 1)
-    )
+    
+    format = {
+        'phrase': greet_phrase(),
+        'name': tbm['drive_name'],
+        'destination': tbm['tbm_dest'],
+    }
+    if arrived:
+        message = 'I\'ve arrived at {destination}. Phew!'
+    else:
+        message = 'I\'m {at}, heading {direction} towards {destination} with {to_go:g}km to go'
+        format['at'] = at
+        format['dist'] = tube_distances[0][i+1]
+        format['direction'] = summarise_direction(tbm['tbm_direction'])
+        format['to_go'] = round(remain, 1)
+    line = (random.choice(greetings) + message).format(**format)
     print line
     if TWITTER:
         TWITTER.statuses.update(
@@ -164,4 +176,8 @@ for i, tbm in enumerate(data):
             long=tbm['lon'],
             display_coordinates=True
         )
-        writer.writerow((tbm['drive_name'], tbm['distance_remaining']))
+        if arrived:
+            val = 'arrived'
+        else:
+            val = tbm['distance_remaining']
+        writer.writerow((tbm['drive_name'], val))
