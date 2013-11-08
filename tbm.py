@@ -140,7 +140,7 @@ for i, tbm in enumerate(data):
     if arrived:
         if last and last == 'arrived':
             continue
-    elif last and last - remain < 1:
+    elif last and last - remain < 0.5:
         continue
 
     tube_distances.sort(key=lambda station: station[i+1])
