@@ -26,10 +26,11 @@ def get_last_values(f):
     last_values = {}
     reader = csv.reader(f)
     for tbm in reader:
-        val = tbm[1]
-        if val != 'arrived':
-            val = float(val)
-        last_values[tbm[0]] = val
+        if len(tbm) > 1:
+            val = tbm[1]
+            if val != 'arrived':
+                val = float(val)
+            last_values[tbm[0]] = val
     return last_values
 
 def fetch(url, data=None, headers={}):
@@ -77,13 +78,23 @@ def summarise_direction(direction):
 source = fetch("http://www.crossrail.co.uk/near-you/geoserver/get-tbms", headers={
     'X-Requested-With': 'XMLHttpRequest'
 })
+source_arrived = fetch("http://www.crossrail.co.uk/near-you/geoserver/get-completed-tbms", headers={
+    'X-Requested-With': 'XMLHttpRequest'
+})
 if not source:
+    sys.exit()
+if not source_arrived:
     sys.exit()
 
 data = json.load(source)
+data_arrived = json.load(source_arrived)
 
 # Precompute lat long
 for tbm in data:
+    lat, lon = get_lat_lon(tbm['easting'], tbm['northing'])
+    tbm['lat'] = lat
+    tbm['lon'] = lon
+for tbm in data_arrived:
     lat, lon = get_lat_lon(tbm['easting'], tbm['northing'])
     tbm['lat'] = lat
     tbm['lon'] = lon
@@ -132,14 +143,44 @@ writer = csv.writer(f)
 
 TWITTER = get_twitter()
 
+for i, tbm in enumerate(data_arrived):
+    last = last_values.get(tbm['drive_name'])
+    if last and last == 'arrived':
+        continue
+    last_values[tbm['drive_name']] = 'arrived'
+    format = {
+        'phrase': greet_phrase(),
+        'name': tbm['drive_name'],
+        'destination': tbm['destination'],
+        'rings': tbm['tunnel_rings_installed'],
+        'distance': tbm['distance_travelled'],
+        'speed': tbm['average_speed'],
+        'material': re.sub(r'(.*) approx', r'about \1', tbm['material_excavated']),
+        'launched': tbm['launched_from'],
+    }
+    messages = [
+        'I\'ve arrived at {destination} after laying {rings} tunnel rings over {distance}, at an average speed of {speed}. Phew!',
+        'I\'ve arrived at {destination} after excavating {material} between here and {launched}',
+    ]
+    line = (random.choice(greetings) + random.choice(messages)).format(**format)
+    print line
+    if TWITTER:
+        TWITTER.statuses.update(
+            status=line,
+            lat=tbm['lat'],
+            long=tbm['lon'],
+            display_coordinates=True
+        )
+        val = 'arrived'
+        writer.writerow((tbm['drive_name'], val))
 
 for i, tbm in enumerate(data):
     last = last_values.get(tbm['drive_name'])
     remain = float(tbm['distance_remaining'])
     arrived = remain < 0.001
-    if arrived:
-        if last and last == 'arrived':
-            continue
+    arrived = False
+    if last and last == 'arrived':
+        continue
     elif last and last - remain < 0.5:
         continue
 
