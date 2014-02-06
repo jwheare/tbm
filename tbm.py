@@ -39,7 +39,7 @@ def fetch(url, data=None, headers={}):
         return urllib2.urlopen(req)
     except urllib2.HTTPError as e:
         short_err, long_err = BaseHTTPServer.BaseHTTPRequestHandler.responses.get(e.code)
-        print 'Error %s %s\n%s' % (e.code, long_err, e.read())
+        print 'Error %s %s\n%s\n%s' % (e.code, long_err, url, e.read())
         return None
 
 def get_name(lat, lon):
