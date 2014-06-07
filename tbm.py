@@ -164,6 +164,9 @@ for i, tbm in enumerate(data_arrived):
     ]
     line = (random.choice(greetings) + random.choice(messages)).format(**format)
     print line
+    val = 'arrived'
+    row = (tbm['drive_name'], val)
+    # print row
     if TWITTER:
         TWITTER.statuses.update(
             status=line,
@@ -171,8 +174,7 @@ for i, tbm in enumerate(data_arrived):
             long=tbm['lon'],
             display_coordinates=True
         )
-        val = 'arrived'
-        writer.writerow((tbm['drive_name'], val))
+        writer.writerow(row)
 
 for i, tbm in enumerate(data):
     last = last_values.get(tbm['drive_name'])
@@ -210,6 +212,12 @@ for i, tbm in enumerate(data):
         format['to_go'] = round(remain, 1)
     line = (random.choice(greetings) + message).format(**format)
     print line
+    if arrived:
+        val = 'arrived'
+    else:
+        val = tbm['distance_remaining']
+    row = (tbm['drive_name'], val)
+    # print row
     if TWITTER:
         TWITTER.statuses.update(
             status=line,
@@ -217,8 +225,4 @@ for i, tbm in enumerate(data):
             long=tbm['lon'],
             display_coordinates=True
         )
-        if arrived:
-            val = 'arrived'
-        else:
-            val = tbm['distance_remaining']
-        writer.writerow((tbm['drive_name'], val))
+        writer.writerow(row)
