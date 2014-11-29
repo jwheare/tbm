@@ -37,8 +37,12 @@ def fetch(url, data=None, headers={}):
     req = urllib2.Request(url=url, data=data, headers=headers)
     try:
         return urllib2.urlopen(req)
+    except urllib2.URLError as e:
+        return None
     except urllib2.HTTPError as e:
         short_err, long_err = BaseHTTPServer.BaseHTTPRequestHandler.responses.get(e.code)
+        if e.code == 503:
+            return None
         print 'Error %s %s\n%s\n%s' % (e.code, long_err, url, e.read())
         return None
 
